@@ -1,30 +1,26 @@
 
-self.addEventListener('fetch', event => {
-    // const offlineResponse = new Response(`
-    //     <!DOCTYPE html>
-    //     <html lang="en">
-    //         <head>
-    //             <meta charset="UTF-8">
-    //             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    //             <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    //             <title>Mi PWA</title>
-            
-    //             <link rel="stylesheet" href="css/style.css">
-    //         </head>
-    //         <body class="container p-3">
-    //             <h1>Sin internet...</h1>
-    //         </body>
-    //     </html>
-    // `, {
-    //     headers: {
-    //         'Content-Type': 'text/html'
-    //     }
-    // })
 
-    const offlineResponse = fetch('paginas/offlien.html')
+self.addEventListener('install', e => {
 
-    const resp = fetch(event.request)
-        .catch(() => offlineResponse)
+    const crearCache = caches.open('cache-1')
+    .then(cache => {
+        return cache.addAll([
+            '/04-cache-offline/',
+            '/04-cache-offline/index.html',
+            '/04-cache-offline/ccs/style.css',
+            '/04-cache-offline/img/main.jpg',
+            'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css',
+            '/04-cache-offline/js/app.js'
+        ])
+    })
 
-    event.respondWith( resp )
+    e.waitUntil( crearCache )
+
+})
+
+self.addEventListener('fetch', e => {
+
+    // 1 - Cache only
+    // cuando toda la aplicacion carga desde cache
+    e.respondWith( caches.match( e.request ) )
 })

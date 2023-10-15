@@ -1,7 +1,7 @@
 
 
 if ( navigator.serviceWorker ) {
-    navigator.serviceWorker.register('http://127.0.0.1:5501/04-cache-offline/sw.js');
+    navigator.serviceWorker.register('/04-cache-offline/sw.js');
 }
 
 // if ( window.caches ) {
