@@ -38,26 +38,49 @@ self.addEventListener('install', e => {
 })
 
 self.addEventListener('fetch', e => {
-    // 3- Cache Network with cache fallback
-    const respuesta = fetch(e.request).then(res => {
-        if ( !res) return caches.match(e.request)
-        
-        caches.open( CACHE_DYNAMIC_NAME )
-        .then( cache => {
-            cache.put( e.request, res)
+    // ==============================================
+    // 3- Cache with network update   (Stale While Revalidate)
+    // Cuando el rendimiento es critico
+    // el cache siempre estará un paso atraz 
+    // (primero mostramos cache y luego actualizamos el mismo)
+    // ==============================================
+    if (e.request.url.includes('bootstrap')) {
+        return e.respondWith(caches.match(e.request))
+    }
+    
+    const respuesta = caches.open(CACHE_STATIC_NAME)
+    .then(cache => {
+        fetch(e.request).then(newREs => cache.put(e.request, newREs))
 
-            limpiarCache(CACHE_DYNAMIC_NAME, CACHE_LIMIT)
-        })
-
-        return res.clone()
-    }).catch( err => {
-        return caches.match(e.request)
+        return cache.match(e.request)
     })
 
     e.respondWith( respuesta )
 
-    // 2 - Cache with network fallback
+    // ==============================================
+    // 3- Cache Network with cache fallback (Network First)
+    // ==============================================
+    // const respuesta = fetch(e.request).then(res => {
+    //     if ( !res) return caches.match(e.request)
+        
+    //     caches.open( CACHE_DYNAMIC_NAME )
+    //     .then( cache => {
+    //         cache.put( e.request, res)
+
+    //         limpiarCache(CACHE_DYNAMIC_NAME, CACHE_LIMIT)
+    //     })
+
+    //     return res.clone()
+    // }).catch( err => {
+    //     return caches.match(e.request)
+    // })
+
+    // e.respondWith( respuesta )
+
+    // ==============================================
+    // 2 - Cache with network fallback (Cache First)
     // busca primero en cache y si no encuentra va a internet
+    // ==============================================
     // const respuesta = caches.match( e.request )
     // .then(res => {
     //     if (res) return res
