@@ -1,5 +1,5 @@
 
-const CACHE_STATIC_NAME  = 'static-v1';
+const CACHE_STATIC_NAME  = 'static-v4';
 const CACHE_DYNAMIC_NAME = 'dynamic-v1';
 const CACHE_INMUTABLE_NAME = 'inmutable-v1';
 
@@ -30,15 +30,14 @@ self.addEventListener('install', e => {
         .then( cache => {
 
             return cache.addAll([
-                '/05-navegacion-offline/',
-                '/05-navegacion-offline/index.html',
-                '/05-navegacion-offline/css/style.css',
-                '/05-navegacion-offline/img/main.jpg',
-                '/05-navegacion-offline/js/app.js',
-                '/05-navegacion-offline/img/no-img.jpg',
-                '/05-navegacion-offline/pages/offline.html'
+                '/',
+                '/index.html',
+                '/css/style.css',
+                '/img/main.jpg',
+                '/js/app.js',
+                '/img/no-img.jpg',
+                '/pages/offline.html'
             ]);
-
         
         });
 
@@ -49,27 +48,42 @@ self.addEventListener('install', e => {
 
 });
 
-self.addEventListener('install', e => {
+self.addEventListener('activate', e => {
+    const respuesta = caches.keys().then(keys => {
+        keys.forEach(key => {
+            if (key !== CACHE_STATIC_NAME && key.includes('static')) {
+                return caches.delete(key)
+            }
+        })
+    })
+
+    e.waitUntil(respuesta)
+})
+
+self.addEventListener('fetch', e => {
     // 2- Cache with Network Fallback
     const respuesta = caches.match( e.request )
         .then( res => {
 
-            if ( res ) return res;
+            if ( res ) return res
 
             // No existe el archivo
-            // tengo que ir a la web
             console.log('No existe', e.request.url );
 
             return fetch( e.request ).then( newResp => {
 
                 caches.open( CACHE_DYNAMIC_NAME )
                     .then( cache => {
-                        cache.put( e.request, newResp );
-                        limpiarCache( CACHE_DYNAMIC_NAME, 50 );
+                        cache.put( e.request, newResp )
+                        limpiarCache( CACHE_DYNAMIC_NAME, 50 )
                     });
 
-                return newResp.clone();
-            });
+                return newResp.clone()
+            }).catch(err => {
+                if (e.request.headers.get('accept').includes('text/html')) {
+                    return caches.match('/pages/offline.html')
+                }
+            })
 
         });
 

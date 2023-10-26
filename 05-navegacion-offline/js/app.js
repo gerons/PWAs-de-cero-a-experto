@@ -1,7 +1,7 @@
 
 
 if ( navigator.serviceWorker ) {
-    navigator.serviceWorker.register('/05-navegacion-offline/sw.js');
+    navigator.serviceWorker.register('/sw.js');
 }
 
 // if ( window.caches ) {
